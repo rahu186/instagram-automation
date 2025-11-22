@@ -32,7 +32,9 @@ def write_quote_on_image(image_path, quote, output_path):
     draw = ImageDraw.Draw(image)
     font_size = max(20, image.size[0]//15)
     font = ImageFont.load_default()
-    text_width, text_height = draw.textsize(quote, font=font)
+    bbox = draw.textbbox((0, 0), quote, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
     x = (image.width - text_width) // 2
     y = image.height - text_height - 20
     draw.text((x, y), quote, font=font, fill="white")
