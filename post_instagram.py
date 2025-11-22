@@ -4,18 +4,25 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import random
 
-# Instagram credentials
-USERNAME = os.getenv("INSTAGRAM_USERNAME")
-PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+# --- Instagram session-based login ---
+SESSION_FILE = "session.json"
 
 cl = Client()
-cl.login(USERNAME, PASSWORD)
+if os.path.exists(SESSION_FILE):
+    cl.load_settings(SESSION_FILE)
+    cl.login(None, None)  # Login using session
+else:
+    USERNAME = os.getenv("INSTAGRAM_USERNAME")
+    PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+    cl.login(USERNAME, PASSWORD)
+    cl.dump_settings(SESSION_FILE)  # Save session for future runs
 
+# --- Images and quotes ---
 images_folder = "images"
 all_images = [f for f in os.listdir(images_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
 if not all_images:
-    raise Exception("No images found in the 'images' folder!")
+    raise Exception("No images found in 'images/' folder!")
 
 quotes = [
     "Stay positive, work hard, make it happen.",
@@ -27,16 +34,22 @@ quotes = [
 
 hashtags = ["#motivation", "#dailyquotes", "#inspiration", "#automation", "#fun"]
 
+# --- Function to write quote on image ---
 def write_quote_on_image(image_path, quote, output_path):
     image = Image.open(image_path)
     draw = ImageDraw.Draw(image)
-    font_size = max(20, image.size[0]//15)
+    font_size = max(20, image.size[0] // 15)
     font = ImageFont.load_default()
+
+    # Pillow >=10 fix for text size
     bbox = draw.textbbox((0, 0), quote, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
+
+    # Position text at bottom center
     x = (image.width - text_width) // 2
     y = image.height - text_height - 20
+
     draw.text((x, y), quote, font=font, fill="white")
     image.save(output_path)
 
