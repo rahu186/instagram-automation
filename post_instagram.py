@@ -14,7 +14,8 @@ try:
     if os.path.exists(SESSION_FILE):
         print("🔐 Using existing Instagram session...")
         cl.load_settings(SESSION_FILE)
-        cl.login(None, None)  # Login using loaded session
+        cl.private_request("accounts/current_user/?edit=true")
+
     else:
         print("🔑 Logging in first time...")
         USERNAME = os.getenv("INSTAGRAM_USERNAME")
