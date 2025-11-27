@@ -121,7 +121,7 @@
 from instagrapi import Client
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import ImageClip
-import os, random, json
+import os, random
 
 # --------------------------
 # SESSION LOGIN
@@ -144,7 +144,7 @@ else:
     print("✅ New session saved!")
 
 # --------------------------
-# RANDOM QUOTES (Sad, Love, One-sided, Pain)
+# RANDOM QUOTES
 # --------------------------
 quotes = [
     "Na baat kar na mujhe yaad kar 💔",
@@ -161,9 +161,6 @@ quotes = [
 background_options = ["black", "white"]
 emoji_options = ["💔", "😔", "🥀", "🌹"]
 
-font_regular = "fonts/PlayfairDisplay-Regular.ttf"
-font_bold = "fonts/PlayfairDisplay-Bold.ttf"
-
 # --------------------------
 # CREATE POST (1080x1080)
 # --------------------------
@@ -174,10 +171,12 @@ def create_post(quote):
     img = Image.new("RGB", (1080, 1080), bg)
     draw = ImageDraw.Draw(img)
 
-    font = ImageFont.truetype(font_regular, 70)
+    # ----- DEFAULT FONT (NO FILE REQUIRED) -----
+    font = ImageFont.load_default()
 
     text = quote + " " + emoji
     W, H = img.size
+
     w, h = draw.textbbox((0, 0), text, font=font)[2:]
 
     draw.text(
@@ -200,9 +199,10 @@ def create_reel(quote):
     img = Image.new("RGB", (1080, 1920), bg)
     draw = ImageDraw.Draw(img)
 
-    font = ImageFont.truetype(font_bold, 90)
-    text = quote + " " + emoji
+    # ----- DEFAULT FONT -----
+    font = ImageFont.load_default()
 
+    text = quote + " " + emoji
     W, H = img.size
     w, h = draw.textbbox((0, 0), text, font=font)[2:]
 
@@ -233,4 +233,3 @@ create_reel(quote)
 cl.video_upload("reel.mp4", caption="")
 
 print("🎉 DONE!")
-
