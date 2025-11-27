@@ -118,24 +118,119 @@
 # cl.dump_settings(SESSION_FILE)
 # print("🔄 Session updated and saved.")
 
+# from PIL import Image, ImageDraw, ImageFont
+# import random
+# import os
+# from instagrapi import Client
+# import re
+
+# # ===========================
+# #   Fonts
+# # ===========================
+# POPPINS_FONT = "fonts/Poppins-Bold.ttf"
+# NOTO_EMOJI_FONT = "fonts/NotoColorEmoji-Regular.ttf"
+
+# font_size = 60
+# font_poppins = ImageFont.truetype(POPPINS_FONT, font_size)
+# font_emoji = ImageFont.truetype(NOTO_EMOJI_FONT, font_size)
+
+# # ===========================
+# #   Instagram Login
+# # ===========================
+# SESSION_FILE = "session.json"
+# cl = Client()
+
+# if os.path.exists(SESSION_FILE):
+#     cl.load_settings(SESSION_FILE)
+#     cl.private_request("accounts/current_user/?edit=true")
+#     print("🔐 Logged in using existing session")
+# else:
+#     USERNAME = os.getenv("INSTAGRAM_USERNAME")
+#     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+#     cl.login(USERNAME, PASSWORD)
+#     cl.dump_settings(SESSION_FILE)
+#     print("✅ New session saved!")
+
+# # ===========================
+# #   Quotes and Hashtags
+# # ===========================
+# quotes = [
+#     "Stay positive, work hard, make it happen. 💪✨",
+#     "Dream big, hustle harder. 🚀🔥",
+#     "Good vibes only. 🌸😎",
+#     "Believe you can and you're halfway there. 🌟💖",
+# ]
+
+# hashtags = ["#motivation", "#inspiration", "#success", "#positivity"]
+
+# quote = random.choice(quotes)
+# caption = f"{quote}\n\n{' '.join(random.sample(hashtags, 4))}"
+
+# # ===========================
+# #   Create Image
+# # ===========================
+# WIDTH, HEIGHT = 1080, 1080
+# img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
+# draw = ImageDraw.Draw(img)
+
+# # ===========================
+# #   Function to separate text and emojis
+# # ===========================
+# def split_text_emoji(text):
+#     """Split a string into list of tuples: (char, font)"""
+#     result = []
+#     for char in text:
+#         if re.match(r'[\U0001F300-\U0001FAFF\u2600-\u26FF]', char):
+#             # Emoji range
+#             result.append((char, font_emoji))
+#         else:
+#             result.append((char, font_poppins))
+#     return result
+
+# # ===========================
+# #   Draw text with mixed fonts
+# # ===========================
+# x, y = 50, HEIGHT // 2 - 100
+# spacing = 5
+
+# for char, font in split_text_emoji(quote):
+#     draw.text((x, y), char, font=font, fill="white")
+#     # Advance x by character width
+#     x += font.getlength(char) + spacing
+
+# # ===========================
+# #   Save & Upload
+# # ===========================
+# post_image = "post_with_quote.jpg"
+# img.save(post_image)
+# print(f"📸 Post image created with quote: {quote}")
+
+# cl.photo_upload(post_image, caption=caption)
+# print("✅ Uploaded post to Instagram with caption")
+
+# cl.dump_settings(SESSION_FILE)
+# print("🔄 Session updated and saved")
+
 from PIL import Image, ImageDraw, ImageFont
 import random
 import os
 from instagrapi import Client
 import re
+import requests
 
 # ===========================
-#   Fonts
+# Fonts & Emoji folder
 # ===========================
 POPPINS_FONT = "fonts/Poppins-Bold.ttf"
-NOTO_EMOJI_FONT = "fonts/NotoColorEmoji-Regular.ttf"
-
 font_size = 60
 font_poppins = ImageFont.truetype(POPPINS_FONT, font_size)
-font_emoji = ImageFont.truetype(NOTO_EMOJI_FONT, font_size)
+
+EMOJI_FOLDER = "emoji_pngs"  # folder to store PNG emojis
+EMOJI_SIZE = font_size        # resize emoji to font size
+os.makedirs(EMOJI_FOLDER, exist_ok=True)
 
 # ===========================
-#   Instagram Login
+# Instagram login
 # ===========================
 SESSION_FILE = "session.json"
 cl = Client()
@@ -152,7 +247,7 @@ else:
     print("✅ New session saved!")
 
 # ===========================
-#   Quotes and Hashtags
+# Quotes and hashtags
 # ===========================
 quotes = [
     "Stay positive, work hard, make it happen. 💪✨",
@@ -167,41 +262,57 @@ quote = random.choice(quotes)
 caption = f"{quote}\n\n{' '.join(random.sample(hashtags, 4))}"
 
 # ===========================
-#   Create Image
+# Download missing emoji PNGs
+# ===========================
+def is_emoji(char):
+    return re.match(r'[\U0001F300-\U0001FAFF\u2600-\u26FF]', char)
+
+def download_emoji(char):
+    code = f"{ord(char):x}"
+    filename = f"emoji_u{code}.png"
+    path = os.path.join(EMOJI_FOLDER, filename)
+    if not os.path.exists(path):
+        url = f"https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u/{filename}"
+        try:
+            r = requests.get(url)
+            if r.status_code == 200:
+                with open(path, "wb") as f:
+                    f.write(r.content)
+                print(f"✅ Downloaded {filename}")
+            else:
+                print(f"⚠ Emoji PNG not found for {char}")
+        except Exception as e:
+            print(f"❌ Error downloading {filename}: {e}")
+    return path if os.path.exists(path) else None
+
+# ===========================
+# Create image
 # ===========================
 WIDTH, HEIGHT = 1080, 1080
 img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
 draw = ImageDraw.Draw(img)
 
-# ===========================
-#   Function to separate text and emojis
-# ===========================
-def split_text_emoji(text):
-    """Split a string into list of tuples: (char, font)"""
-    result = []
-    for char in text:
-        if re.match(r'[\U0001F300-\U0001FAFF\u2600-\u26FF]', char):
-            # Emoji range
-            result.append((char, font_emoji))
-        else:
-            result.append((char, font_poppins))
-    return result
-
-# ===========================
-#   Draw text with mixed fonts
-# ===========================
 x, y = 50, HEIGHT // 2 - 100
 spacing = 5
 
-for char, font in split_text_emoji(quote):
-    draw.text((x, y), char, font=font, fill="white")
-    # Advance x by character width
-    x += font.getlength(char) + spacing
+for char in quote:
+    if is_emoji(char):
+        path = download_emoji(char)
+        if path:
+            emoji_img = Image.open(path).convert("RGBA")
+            emoji_img = emoji_img.resize((EMOJI_SIZE, EMOJI_SIZE), Image.ANTIALIAS)
+            img.paste(emoji_img, (x, y), emoji_img)
+            x += EMOJI_SIZE + spacing
+        else:
+            x += EMOJI_SIZE + spacing  # skip missing
+    else:
+        draw.text((x, y), char, font=font_poppins, fill="white")
+        x += font_poppins.getlength(char) + spacing
 
 # ===========================
-#   Save & Upload
+# Save & upload
 # ===========================
-post_image = "post_with_quote.jpg"
+post_image = "post_with_quote.png"
 img.save(post_image)
 print(f"📸 Post image created with quote: {quote}")
 
@@ -210,3 +321,4 @@ print("✅ Uploaded post to Instagram with caption")
 
 cl.dump_settings(SESSION_FILE)
 print("🔄 Session updated and saved")
+
