@@ -286,14 +286,17 @@ def download_emoji(char):
     return path if os.path.exists(path) else None
 
 # ===========================
-# Create image
+# Create image with wrapping
 # ===========================
 WIDTH, HEIGHT = 1080, 1080
+MARGIN = 50
+LINE_SPACING = 20  # space between lines
 img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
 draw = ImageDraw.Draw(img)
 
-x, y = 50, HEIGHT // 2 - 100
-spacing = 5
+x, y = MARGIN, MARGIN
+
+line_height = EMOJI_SIZE + 10  # height for each line (text + emojis)
 
 for char in quote:
     if is_emoji(char):
@@ -301,13 +304,25 @@ for char in quote:
         if path:
             emoji_img = Image.open(path).convert("RGBA")
             emoji_img = emoji_img.resize((EMOJI_SIZE, EMOJI_SIZE), Image.ANTIALIAS)
+
+            # Wrap line if exceeding WIDTH
+            if x + EMOJI_SIZE > WIDTH - MARGIN:
+                x = MARGIN
+                y += line_height + LINE_SPACING
+
             img.paste(emoji_img, (x, y), emoji_img)
             x += EMOJI_SIZE + spacing
         else:
             x += EMOJI_SIZE + spacing  # skip missing
     else:
+        char_width = font_poppins.getlength(char)
+        # Wrap line if exceeding WIDTH
+        if x + char_width > WIDTH - MARGIN:
+            x = MARGIN
+            y += line_height + LINE_SPACING
+
         draw.text((x, y), char, font=font_poppins, fill="white")
-        x += font_poppins.getlength(char) + spacing
+        x += char_width + spacing
 
 # ===========================
 # Save & upload
