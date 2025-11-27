@@ -118,13 +118,24 @@
 # cl.dump_settings(SESSION_FILE)
 # print("🔄 Session updated and saved.")
 
-from instagrapi import Client
 from PIL import Image, ImageDraw, ImageFont
 import random
 import os
+from instagrapi import Client
+import re
 
 # ===========================
-#   SESSION LOGIN
+#   Fonts
+# ===========================
+POPPINS_FONT = "fonts/Poppins-Bold.ttf"
+NOTO_EMOJI_FONT = "fonts/NotoColorEmoji-Regular.ttf"
+
+font_size = 60
+font_poppins = ImageFont.truetype(POPPINS_FONT, font_size)
+font_emoji = ImageFont.truetype(NOTO_EMOJI_FONT, font_size)
+
+# ===========================
+#   Instagram Login
 # ===========================
 SESSION_FILE = "session.json"
 cl = Client()
@@ -141,7 +152,7 @@ else:
     print("✅ New session saved!")
 
 # ===========================
-#   QUOTES AND EMOJIS
+#   Quotes and Hashtags
 # ===========================
 quotes = [
     "Stay positive, work hard, make it happen. 💪✨",
@@ -152,50 +163,50 @@ quotes = [
 
 hashtags = ["#motivation", "#inspiration", "#success", "#positivity"]
 
-# Choose one randomly
 quote = random.choice(quotes)
 caption = f"{quote}\n\n{' '.join(random.sample(hashtags, 4))}"
 
 # ===========================
-#   CREATE BLACK BACKGROUND IMAGE
+#   Create Image
 # ===========================
 WIDTH, HEIGHT = 1080, 1080
 img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
 draw = ImageDraw.Draw(img)
 
-# Default font (ignore custom font for now)
-font = ImageFont.load_default()
+# ===========================
+#   Function to separate text and emojis
+# ===========================
+def split_text_emoji(text):
+    """Split a string into list of tuples: (char, font)"""
+    result = []
+    for char in text:
+        if re.match(r'[\U0001F300-\U0001FAFF\u2600-\u26FF]', char):
+            # Emoji range
+            result.append((char, font_emoji))
+        else:
+            result.append((char, font_poppins))
+    return result
 
-# Calculate text size and center
-bbox = draw.textbbox((0, 0), quote, font=font)
-text_width = bbox[2] - bbox[0]
-text_height = bbox[3] - bbox[1]
+# ===========================
+#   Draw text with mixed fonts
+# ===========================
+x, y = 50, HEIGHT // 2 - 100
+spacing = 5
 
-x = (WIDTH - text_width) // 2
-y = (HEIGHT - text_height) // 2
+for char, font in split_text_emoji(quote):
+    draw.text((x, y), char, font=font, fill="white")
+    # Advance x by character width
+    x += font.getlength(char) + spacing
 
-# Draw text
-draw.text((x, y), quote, font=font, fill="white")
-
-# Save the post image
+# ===========================
+#   Save & Upload
+# ===========================
 post_image = "post_with_quote.jpg"
 img.save(post_image)
 print(f"📸 Post image created with quote: {quote}")
 
-# ===========================
-#   UPLOAD TO INSTAGRAM
-# ===========================
 cl.photo_upload(post_image, caption=caption)
 print("✅ Uploaded post to Instagram with caption")
 
-# ===========================
-#   SESSION SAVE
-# ===========================
 cl.dump_settings(SESSION_FILE)
 print("🔄 Session updated and saved")
-
-
-# # create_reel(quote)
-# # cl.video_upload("reel.mp4", caption=caption)
-
-# # print("🎉 DONE!")
