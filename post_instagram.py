@@ -199,10 +199,9 @@ def create_reel(quote):
     img = Image.new("RGB", (1080, 1920), bg)
     draw = ImageDraw.Draw(img)
 
-    # ----- DEFAULT FONT -----
     font = ImageFont.load_default()
-
     text = quote + " " + emoji
+
     W, H = img.size
     w, h = draw.textbbox((0, 0), text, font=font)[2:]
 
@@ -215,11 +214,12 @@ def create_reel(quote):
 
     img.save("frame.jpg")
 
-    # slow zoom video
-    clip = ImageClip("frame.jpg").set_duration(5).resize(lambda t: 1 + 0.05 * t)
+    # ---- SIMPLE STATIC 5 SEC VIDEO (NO ANTIALIAS, NO RESIZE) ----
+    clip = ImageClip("frame.jpg").set_duration(5)
     clip.write_videofile("reel.mp4", fps=24)
 
     print("🎬 Reel created!")
+
 
 # --------------------------
 # GENERATE & UPLOAD
