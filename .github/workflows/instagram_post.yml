@@ -1,28 +1,58 @@
-name: Instagram Daily Post
+# name: Instagram Daily Post
+
+# on:
+#   schedule:
+#     - cron: '0 10 * * *'  # Adjust UTC time
+#   workflow_dispatch:
+
+# jobs:
+#   post-instagram:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout repo
+#       uses: actions/checkout@v3
+
+#     - name: Setup Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: '3.11'
+
+#     - name: Install dependencies
+#       run: pip install -r requirements.txt
+
+#     - name: Run Instagram Automation
+#       env:
+#         INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+#         INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
+#       run: python post_instagram.py
+
+name: Auto Instagram Post
 
 on:
-  schedule:
-    - cron: '0 10 * * *'  # Adjust UTC time
   workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
-  post-instagram:
+  upload:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Run Instagram Automation
-      env:
-        INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
-        INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
-      run: python post_instagram.py
+      - name: Run Instagram automation
+        env:
+          INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+          INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
+        run: python post_instagram.py
+
