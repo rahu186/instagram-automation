@@ -295,7 +295,7 @@ img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
 draw = ImageDraw.Draw(img)
 
 x, y = MARGIN, MARGIN
-
+spacing = 5  # <--- add this
 line_height = EMOJI_SIZE + 10  # height for each line (text + emojis)
 
 for char in quote:
