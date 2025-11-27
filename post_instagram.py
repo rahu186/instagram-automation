@@ -130,7 +130,6 @@ SESSION_FILE = "session.json"
 cl = Client()
 
 if os.path.exists(SESSION_FILE):
-    print("🔐 Using existing Instagram session...")
     cl.load_settings(SESSION_FILE)
     try:
         cl.login("", "")
@@ -141,49 +140,49 @@ else:
     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
     cl.login(USERNAME, PASSWORD)
     cl.dump_settings(SESSION_FILE)
-    print("✅ New session saved!")
 
 # --------------------------
 # RANDOM QUOTES
 # --------------------------
 quotes = [
-    "Na baat kar na mujhe yaad kar 💔",
-    "Kismat hi bahot he mere liye 😔",
-    "Tu na mujhe barbaad kar 🌹",
+    "Na baat kar na mujhe yaad kar",
+    "Kismat hi bahot he mere liye",
+    "Tu na mujhe barbaad kar",
     "Kabhi kabhi khud se bhi haar maan jaata hoon...",
     "Koi nahi hota jab zarurat hoti hai...",
     "Dil ka bharosa to kab ka toot chuka hai...",
 ]
 
+hashtags = "#life #love #quotes #emotions"
+emojis = ["💔", "😔", "🥀", "🌹"]
+
 # --------------------------
-# STYLE OPTIONS
+# FONT SETUP
 # --------------------------
-background_options = ["black", "white"]
-emoji_options = ["💔", "😔", "🥀", "🌹"]
+FONT_PATH = "NotoColorEmoji.ttf"  # or any emoji-supporting TTF font
+FONT_SIZE = 80
 
 # --------------------------
 # CREATE POST (1080x1080)
 # --------------------------
 def create_post(quote):
-    bg = random.choice(background_options)
-    emoji = random.choice(emoji_options)
+    bg = random.choice(["black", "white"])
+    emoji = random.choice(emojis)
 
     img = Image.new("RGB", (1080, 1080), bg)
     draw = ImageDraw.Draw(img)
 
-    # ----- DEFAULT FONT (NO FILE REQUIRED) -----
-    font = ImageFont.load_default()
-
+    font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
     text = quote + " " + emoji
-    W, H = img.size
 
-    w, h = draw.textbbox((0, 0), text, font=font)[2:]
+    W, H = img.size
+    w, h = draw.textbbox((0,0), text, font=font)[2:]
 
     draw.text(
-        ((W - w) / 2, (H - h) / 2),
+        ((W - w)/2, (H - h)/2),
         text,
         font=font,
-        fill="white" if bg == "black" else "black"
+        fill="white" if bg=="black" else "black"
     )
 
     img.save("post.jpg")
@@ -193,43 +192,41 @@ def create_post(quote):
 # CREATE REEL (1080x1920)
 # --------------------------
 def create_reel(quote):
-    bg = random.choice(background_options)
-    emoji = random.choice(emoji_options)
+    bg = random.choice(["black", "white"])
+    emoji = random.choice(emojis)
 
     img = Image.new("RGB", (1080, 1920), bg)
     draw = ImageDraw.Draw(img)
 
-    font = ImageFont.load_default()
+    font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
     text = quote + " " + emoji
 
     W, H = img.size
-    w, h = draw.textbbox((0, 0), text, font=font)[2:]
+    w, h = draw.textbbox((0,0), text, font=font)[2:]
 
     draw.text(
-        ((W - w) / 2, (H - h) / 2),
+        ((W - w)/2, (H - h)/2),
         text,
         font=font,
-        fill="white" if bg == "black" else "black"
+        fill="white" if bg=="black" else "black"
     )
 
     img.save("frame.jpg")
 
-    # ---- SIMPLE STATIC 5 SEC VIDEO (NO ANTIALIAS, NO RESIZE) ----
     clip = ImageClip("frame.jpg").set_duration(5)
     clip.write_videofile("reel.mp4", fps=24)
-
     print("🎬 Reel created!")
-
 
 # --------------------------
 # GENERATE & UPLOAD
 # --------------------------
 quote = random.choice(quotes)
+caption = quote + " " + random.choice(emojis) + "\n" + hashtags
 
 create_post(quote)
-cl.photo_upload("post.jpg", caption="")
+cl.photo_upload("post.jpg", caption=caption)
 
 create_reel(quote)
-cl.video_upload("reel.mp4", caption="")
+cl.video_upload("reel.mp4", caption=caption)
 
 print("🎉 DONE!")
