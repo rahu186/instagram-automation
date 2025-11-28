@@ -348,17 +348,12 @@ import json
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
 PROMPT = """
-Create a 1080x1080 Instagram emotional shayari post.
-
-Generate a 2–3 line original Hindi shayari about heartbreak or missing someone.
-Include 2–3 emojis naturally (💔🥺😔🌹).
-
-Design Requirements:
-• Dark black-to-grey soft gradient background.
-• Cute rounded white font like in emotional Instagram posts.
-• Center aligned text with proper line spacing.
-• Slight glow behind text.
-• Minimal, clean, aesthetic.
+Create a 1080x1080 Instagram post with a beautiful, calming, or relaxing scenery as the background (like mountains, lakes, beaches, forests, or sunsets). Add a 1–2 line original motivational or relaxing quote in an elegant, readable font. Place the text inside a semi-transparent box so the background scenery is still visible. Design Requirements: 
+• Soft, harmonious colors that match the scenery. 
+• Rounded, clean white font with good readability. 
+• Center-aligned text with proper spacing. 
+• Slight shadow or glow behind the text to enhance visibility. 
+• Minimal, aesthetic, and peaceful vibe.
 """
 
 # -----------------------
