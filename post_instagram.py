@@ -337,120 +337,24 @@
 # cl.dump_settings(SESSION_FILE)
 # print("🔄 Session updated and saved")
 
-# import requests
-# from instagrapi import Client
-# import os
-# import json
-
-# # -----------------------
-# # Stability AI Settings
-# # -----------------------
-# STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
-
-# PROMPT = """
-# Create a 1080x1080 Instagram post with a beautiful, calming, or relaxing scenery as the background (like mountains, lakes, beaches, forests, or sunsets). Add a 1–2 line original motivational or relaxing quote in an elegant, readable font. Place the text inside a semi-transparent box so the background scenery is still visible. Design Requirements: 
-# • Soft, harmonious colors that match the scenery. 
-# • Rounded, clean white font with good readability. 
-# • Center-aligned text with proper spacing. 
-# • Slight shadow or glow behind the text to enhance visibility. 
-# • Minimal, aesthetic, and peaceful vibe.
-# """
-
-# # -----------------------
-# # Instagram Login
-# # -----------------------
-# SESSION_FILE = "session.json"
-# cl = Client()
-
-# def login_instagram():
-#     if os.path.exists(SESSION_FILE):
-#         try:
-#             cl.load_settings(SESSION_FILE)
-#             cl.private_request("accounts/current_user/?edit=true")
-#             print("🔐 Logged in using saved session")
-#             return
-#         except Exception as e:
-#             print("⚠ Saved session failed, logging in fresh:", e)
-
-#     USERNAME = os.getenv("INSTAGRAM_USERNAME")
-#     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
-
-#     cl.login(USERNAME, PASSWORD)
-#     cl.dump_settings(SESSION_FILE)
-#     print("✅ Logged in & new session saved")
-
-
-# # -----------------------
-# # Generate Image using Stability AI
-# # -----------------------
-# def generate_ai_post():
-#     url = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
-
-#     headers = {
-#         "Authorization": f"Bearer {STABILITY_API_KEY}",
-#         "Accept": "image/*",
-#     }
-
-#     data = {
-#         "prompt": PROMPT,
-#         "output_format": "png",
-#     }
-
-#     files = {
-#         "none": (None, "")   # REQUIRED for Ultra to accept multipart/form-data
-#     }
-
-#     print("🎨 Generating AI image...")
-
-#     response = requests.post(url, headers=headers, data=data, files=files)
-
-#     if response.status_code != 200:
-#         print("❌ Stability Error:", response.text)
-#         return None
-
-#     with open("daily_post.png", "wb") as f:
-#         f.write(response.content)
-
-#     print("✨ Image saved as daily_post.png")
-#     return "daily_post.png"
-
-
-# # -----------------------
-# # Upload to Instagram
-# # -----------------------
-# def upload_to_instagram(image_path):
-#     caption = "✨ Daily Motivation\n#motivation #inspiration #quotes #positivity"
-#     try:
-#         cl.photo_upload(image_path, caption)
-#         print("📤 Successfully uploaded to Instagram!")
-#     except Exception as e:
-#         print("❌ Upload error:", e)
-
-
-# # -----------------------
-# # Main Run
-# # -----------------------
-# login_instagram()
-
-# image = generate_ai_post()
-# if image:
-#     upload_to_instagram(image)
-
-# cl.dump_settings(SESSION_FILE)
-# print("🔄 Session saved again")
-
 import requests
 from instagrapi import Client
 import os
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+import json
 
 # -----------------------
 # Stability AI Settings
 # -----------------------
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
-# Your quote to overlay
-QUOTE = """Stay calm, relax, and enjoy every moment 🌿✨"""
+PROMPT = """
+Create a 1080x1080 Instagram post with a beautiful, calming, or relaxing scenery as the background (like mountains, lakes, beaches, forests, or sunsets). Add a 1–2 line original motivational or relaxing quote in an elegant, readable font. Place the text inside a semi-transparent box so the background scenery is still visible. Design Requirements: 
+• Soft, harmonious colors that match the scenery. 
+• Rounded, clean white font with good readability. 
+• Center-aligned text with proper spacing. 
+• Slight shadow or glow behind the text to enhance visibility. 
+• Minimal, aesthetic, and peaceful vibe.
+"""
 
 # -----------------------
 # Instagram Login
@@ -475,10 +379,11 @@ def login_instagram():
     cl.dump_settings(SESSION_FILE)
     print("✅ Logged in & new session saved")
 
+
 # -----------------------
-# Generate Background using Stability AI
+# Generate Image using Stability AI
 # -----------------------
-def generate_background():
+def generate_ai_post():
     url = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
 
     headers = {
@@ -486,65 +391,29 @@ def generate_background():
         "Accept": "image/*",
     }
 
-    prompt = "Beautiful relaxing scenery, mountains, lake, forest, sunset, soft harmonious colors, 1080x1080"
+    data = {
+        "prompt": PROMPT,
+        "output_format": "png",
+    }
 
-    data = {"prompt": prompt, "output_format": "png"}
-    files = {"none": (None, "")}  # Required for Ultra
+    files = {
+        "none": (None, "")   # REQUIRED for Ultra to accept multipart/form-data
+    }
 
-    print("🎨 Generating AI background...")
+    print("🎨 Generating AI image...")
+
     response = requests.post(url, headers=headers, data=data, files=files)
 
     if response.status_code != 200:
         print("❌ Stability Error:", response.text)
         return None
 
-    with open("background.png", "wb") as f:
+    with open("daily_post.png", "wb") as f:
         f.write(response.content)
 
-    print("✨ Background saved as background.png")
-    return "background.png"
-
-# -----------------------
-# Overlay Quote with Transparent Box + Glow
-# -----------------------
-def overlay_quote(image_path, quote):
-    img = Image.open(image_path).convert("RGBA")
-    txt_layer = Image.new("RGBA", img.size, (255,255,255,0))
-    draw = ImageDraw.Draw(txt_layer)
-
-    font = ImageFont.truetype("arial.ttf", 50)  # Change path if needed
-
-    # Calculate text size
-    text_width, text_height = draw.textsize(quote, font=font)
-    padding = 40
-    box_x0 = (img.width - text_width) // 2 - padding
-    box_y0 = (img.height - text_height) // 2 - padding
-    box_x1 = (img.width + text_width) // 2 + padding
-    box_y1 = (img.height + text_height) // 2 + padding
-
-    # Semi-transparent box
-    draw.rectangle([box_x0, box_y0, box_x1, box_y1], fill=(0,0,0,120), outline=None, width=0)
-
-    # Create glow by drawing blurred white text behind
-    glow_layer = Image.new("RGBA", img.size, (255,255,255,0))
-    glow_draw = ImageDraw.Draw(glow_layer)
-    glow_color = (255, 255, 255, 180)
-
-    # Draw glow multiple times with slight offsets
-    offsets = [(-2,-2),(2,2),(-2,2),(2,-2),(0,0)]
-    for ox, oy in offsets:
-        glow_draw.text(((img.width - text_width)/2 + ox, (img.height - text_height)/2 + oy), quote, font=font, fill=glow_color)
-
-    glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(4))
-
-    # Draw main text
-    draw.text(((img.width - text_width)/2, (img.height - text_height)/2), quote, font=font, fill=(255,255,255,255))
-
-    combined = Image.alpha_composite(img, glow_layer)
-    combined = Image.alpha_composite(combined, txt_layer)
-    combined.save("daily_post.png")
-    print("✨ Final image saved as daily_post.png")
+    print("✨ Image saved as daily_post.png")
     return "daily_post.png"
+
 
 # -----------------------
 # Upload to Instagram
@@ -557,16 +426,147 @@ def upload_to_instagram(image_path):
     except Exception as e:
         print("❌ Upload error:", e)
 
+
 # -----------------------
 # Main Run
 # -----------------------
 login_instagram()
 
-bg = generate_background()
-if bg:
-    final_img = overlay_quote(bg, QUOTE)
-    upload_to_instagram(final_img)
+image = generate_ai_post()
+if image:
+    upload_to_instagram(image)
 
 cl.dump_settings(SESSION_FILE)
 print("🔄 Session saved again")
+
+# import requests
+# from instagrapi import Client
+# import os
+# from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+# # -----------------------
+# # Stability AI Settings
+# # -----------------------
+# STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
+
+# # Your quote to overlay
+# QUOTE = """Stay calm, relax, and enjoy every moment 🌿✨"""
+
+# # -----------------------
+# # Instagram Login
+# # -----------------------
+# SESSION_FILE = "session.json"
+# cl = Client()
+
+# def login_instagram():
+#     if os.path.exists(SESSION_FILE):
+#         try:
+#             cl.load_settings(SESSION_FILE)
+#             cl.private_request("accounts/current_user/?edit=true")
+#             print("🔐 Logged in using saved session")
+#             return
+#         except Exception as e:
+#             print("⚠ Saved session failed, logging in fresh:", e)
+
+#     USERNAME = os.getenv("INSTAGRAM_USERNAME")
+#     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+
+#     cl.login(USERNAME, PASSWORD)
+#     cl.dump_settings(SESSION_FILE)
+#     print("✅ Logged in & new session saved")
+
+# # -----------------------
+# # Generate Background using Stability AI
+# # -----------------------
+# def generate_background():
+#     url = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
+
+#     headers = {
+#         "Authorization": f"Bearer {STABILITY_API_KEY}",
+#         "Accept": "image/*",
+#     }
+
+#     prompt = "Beautiful relaxing scenery, mountains, lake, forest, sunset, soft harmonious colors, 1080x1080"
+
+#     data = {"prompt": prompt, "output_format": "png"}
+#     files = {"none": (None, "")}  # Required for Ultra
+
+#     print("🎨 Generating AI background...")
+#     response = requests.post(url, headers=headers, data=data, files=files)
+
+#     if response.status_code != 200:
+#         print("❌ Stability Error:", response.text)
+#         return None
+
+#     with open("background.png", "wb") as f:
+#         f.write(response.content)
+
+#     print("✨ Background saved as background.png")
+#     return "background.png"
+
+# # -----------------------
+# # Overlay Quote with Transparent Box + Glow
+# # -----------------------
+# def overlay_quote(image_path, quote):
+#     img = Image.open(image_path).convert("RGBA")
+#     txt_layer = Image.new("RGBA", img.size, (255,255,255,0))
+#     draw = ImageDraw.Draw(txt_layer)
+
+#     font = ImageFont.truetype("arial.ttf", 50)  # Change path if needed
+
+#     # Calculate text size
+#     text_width, text_height = draw.textsize(quote, font=font)
+#     padding = 40
+#     box_x0 = (img.width - text_width) // 2 - padding
+#     box_y0 = (img.height - text_height) // 2 - padding
+#     box_x1 = (img.width + text_width) // 2 + padding
+#     box_y1 = (img.height + text_height) // 2 + padding
+
+#     # Semi-transparent box
+#     draw.rectangle([box_x0, box_y0, box_x1, box_y1], fill=(0,0,0,120), outline=None, width=0)
+
+#     # Create glow by drawing blurred white text behind
+#     glow_layer = Image.new("RGBA", img.size, (255,255,255,0))
+#     glow_draw = ImageDraw.Draw(glow_layer)
+#     glow_color = (255, 255, 255, 180)
+
+#     # Draw glow multiple times with slight offsets
+#     offsets = [(-2,-2),(2,2),(-2,2),(2,-2),(0,0)]
+#     for ox, oy in offsets:
+#         glow_draw.text(((img.width - text_width)/2 + ox, (img.height - text_height)/2 + oy), quote, font=font, fill=glow_color)
+
+#     glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(4))
+
+#     # Draw main text
+#     draw.text(((img.width - text_width)/2, (img.height - text_height)/2), quote, font=font, fill=(255,255,255,255))
+
+#     combined = Image.alpha_composite(img, glow_layer)
+#     combined = Image.alpha_composite(combined, txt_layer)
+#     combined.save("daily_post.png")
+#     print("✨ Final image saved as daily_post.png")
+#     return "daily_post.png"
+
+# # -----------------------
+# # Upload to Instagram
+# # -----------------------
+# def upload_to_instagram(image_path):
+#     caption = "✨ Daily Motivation\n#motivation #inspiration #quotes #positivity"
+#     try:
+#         cl.photo_upload(image_path, caption)
+#         print("📤 Successfully uploaded to Instagram!")
+#     except Exception as e:
+#         print("❌ Upload error:", e)
+
+# # -----------------------
+# # Main Run
+# # -----------------------
+# login_instagram()
+
+# bg = generate_background()
+# if bg:
+#     final_img = overlay_quote(bg, QUOTE)
+#     upload_to_instagram(final_img)
+
+# cl.dump_settings(SESSION_FILE)
+# print("🔄 Session saved again")
 
