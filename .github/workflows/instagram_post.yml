@@ -25,6 +25,7 @@ jobs:
       env:
         INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
         INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
+        STABILITY_API_KEY: ${{ secrets.STABILITY_API_KEY }}
       run: python post_instagram.py
 
 # name: Auto Instagram Post
