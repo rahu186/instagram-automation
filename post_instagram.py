@@ -384,8 +384,7 @@ def generate_ai_post():
     url = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
 
     headers = {
-        "Authorization": f"Bearer {STABILITY_API_KEY}",
-        "Accept": "image/png"
+        "Authorization": f"Bearer {STABILITY_API_KEY}"
     }
 
     files = {
