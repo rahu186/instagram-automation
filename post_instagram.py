@@ -348,9 +348,17 @@ import json
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
 PROMPT = """
-Create a brand-new original one-line motivational quote.
-Design a modern Instagram poster (1080x1080), aesthetic and clean,
-with the quote beautifully written inside the image.
+Create a 1080x1080 Instagram emotional shayari post.
+
+Generate a 2–3 line original Hindi shayari about heartbreak or missing someone.
+Include 2–3 emojis naturally (💔🥺😔🌹).
+
+Design Requirements:
+• Dark black-to-grey soft gradient background.
+• Cute rounded white font like in emotional Instagram posts.
+• Center aligned text with proper line spacing.
+• Slight glow behind text.
+• Minimal, clean, aesthetic.
 """
 
 # -----------------------
