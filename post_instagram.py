@@ -211,129 +211,199 @@
 # cl.dump_settings(SESSION_FILE)
 # print("🔄 Session updated and saved")
 
-from PIL import Image, ImageDraw, ImageFont
-import random
-import os
-from instagrapi import Client
-import re
+# from PIL import Image, ImageDraw, ImageFont
+# import random
+# import os
+# from instagrapi import Client
+# import re
+# import requests
+
+# # ===========================
+# # Fonts & Emoji folder
+# # ===========================
+# POPPINS_FONT = "fonts/Poppins-Bold.ttf"
+# font_size = 60
+# font_poppins = ImageFont.truetype(POPPINS_FONT, font_size)
+
+# EMOJI_FOLDER = "emoji_pngs"  # folder to store PNG emojis
+# EMOJI_SIZE = font_size        # resize emoji to font size
+# os.makedirs(EMOJI_FOLDER, exist_ok=True)
+
+# # ===========================
+# # Instagram login
+# # ===========================
+# SESSION_FILE = "session.json"
+# cl = Client()
+
+# if os.path.exists(SESSION_FILE):
+#     cl.load_settings(SESSION_FILE)
+#     cl.private_request("accounts/current_user/?edit=true")
+#     print("🔐 Logged in using existing session")
+# else:
+#     USERNAME = os.getenv("INSTAGRAM_USERNAME")
+#     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+#     cl.login(USERNAME, PASSWORD)
+#     cl.dump_settings(SESSION_FILE)
+#     print("✅ New session saved!")
+
+# # ===========================
+# # Quotes and hashtags
+# # ===========================
+# quotes = [
+#     "Stay positive, work hard, make it happen. 💪✨",
+#     "Dream big, hustle harder. 🚀🔥",
+#     "Good vibes only. 🌸😎",
+#     "Believe you can and you're halfway there. 🌟💖",
+# ]
+
+# hashtags = ["#motivation", "#inspiration", "#success", "#positivity"]
+
+# quote = random.choice(quotes)
+# caption = f"{quote}\n\n{' '.join(random.sample(hashtags, 4))}"
+
+# # ===========================
+# # Download missing emoji PNGs
+# # ===========================
+# def is_emoji(char):
+#     return re.match(r'[\U0001F300-\U0001FAFF\u2600-\u26FF]', char)
+
+# def download_emoji(char):
+#     code = f"{ord(char):x}"
+#     filename = f"emoji_u{code}.png"
+#     path = os.path.join(EMOJI_FOLDER, filename)
+#     if not os.path.exists(path):
+#         url = f"https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u/{filename}"
+#         try:
+#             r = requests.get(url)
+#             if r.status_code == 200:
+#                 with open(path, "wb") as f:
+#                     f.write(r.content)
+#                 print(f"✅ Downloaded {filename}")
+#             else:
+#                 print(f"⚠ Emoji PNG not found for {char}")
+#         except Exception as e:
+#             print(f"❌ Error downloading {filename}: {e}")
+#     return path if os.path.exists(path) else None
+
+# # ===========================
+# # Create image with wrapping
+# # ===========================
+# WIDTH, HEIGHT = 1080, 1080
+# MARGIN = 50
+# LINE_SPACING = 20  # space between lines
+# img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
+# draw = ImageDraw.Draw(img)
+
+# x, y = MARGIN, MARGIN
+# spacing = 5  # <--- add this
+# line_height = EMOJI_SIZE + 10  # height for each line (text + emojis)
+
+# for char in quote:
+#     if is_emoji(char):
+#         path = download_emoji(char)
+#         if path:
+#             emoji_img = Image.open(path).convert("RGBA")
+#             emoji_img = emoji_img.resize((EMOJI_SIZE, EMOJI_SIZE), Image.ANTIALIAS)
+
+#             # Wrap line if exceeding WIDTH
+#             if x + EMOJI_SIZE > WIDTH - MARGIN:
+#                 x = MARGIN
+#                 y += line_height + LINE_SPACING
+
+#             img.paste(emoji_img, (x, y), emoji_img)
+#             x += EMOJI_SIZE + spacing
+#         else:
+#             x += EMOJI_SIZE + spacing  # skip missing
+#     else:
+#         char_width = font_poppins.getlength(char)
+#         # Wrap line if exceeding WIDTH
+#         if x + char_width > WIDTH - MARGIN:
+#             x = MARGIN
+#             y += line_height + LINE_SPACING
+
+#         draw.text((x, y), char, font=font_poppins, fill="white")
+#         x += char_width + spacing
+
+# # ===========================
+# # Save & upload
+# # ===========================
+# post_image = "post_with_quote.png"
+# img.save(post_image)
+# print(f"📸 Post image created with quote: {quote}")
+
+# cl.photo_upload(post_image, caption=caption)
+# print("✅ Uploaded post to Instagram with caption")
+
+# cl.dump_settings(SESSION_FILE)
+# print("🔄 Session updated and saved")
+
 import requests
+from instagrapi import Client
+import os
 
-# ===========================
-# Fonts & Emoji folder
-# ===========================
-POPPINS_FONT = "fonts/Poppins-Bold.ttf"
-font_size = 60
-font_poppins = ImageFont.truetype(POPPINS_FONT, font_size)
+# -----------------------
+# Stability AI Settings
+# -----------------------
+STABILITY_API_KEY = "sk-Ef75mMzEbDovtJiQTF7YKso7MVDy7ajWLi1QooMe7bjz2XLE"
+PROMPT = """
+Create a high-quality Instagram motivational poster. 
+Generate a brand new original one-line motivational quote yourself 
+and place that quote inside the image in beautiful clean typography.
+The design should be modern and aesthetic. Make it 1080x1080 resolution.
+"""
 
-EMOJI_FOLDER = "emoji_pngs"  # folder to store PNG emojis
-EMOJI_SIZE = font_size        # resize emoji to font size
-os.makedirs(EMOJI_FOLDER, exist_ok=True)
-
-# ===========================
-# Instagram login
-# ===========================
+# -----------------------
+# Instagram Login
+# -----------------------
 SESSION_FILE = "session.json"
 cl = Client()
 
 if os.path.exists(SESSION_FILE):
     cl.load_settings(SESSION_FILE)
     cl.private_request("accounts/current_user/?edit=true")
-    print("🔐 Logged in using existing session")
+    print("🔐 Logged in with saved session")
 else:
     USERNAME = os.getenv("INSTAGRAM_USERNAME")
     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
     cl.login(USERNAME, PASSWORD)
     cl.dump_settings(SESSION_FILE)
-    print("✅ New session saved!")
+    print("✅ New session saved")
 
-# ===========================
-# Quotes and hashtags
-# ===========================
-quotes = [
-    "Stay positive, work hard, make it happen. 💪✨",
-    "Dream big, hustle harder. 🚀🔥",
-    "Good vibes only. 🌸😎",
-    "Believe you can and you're halfway there. 🌟💖",
-]
+# -----------------------
+# Generate Image using Stability AI
+# -----------------------
+def generate_ai_post():
+    url = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
+    headers = {"Authorization": f"Bearer {STABILITY_API_KEY}"}
+    data = {"prompt": PROMPT}
 
-hashtags = ["#motivation", "#inspiration", "#success", "#positivity"]
+    print("🎨 Generating AI Instagram post...")
+    r = requests.post(url, headers=headers, files={"none":""}, data=data)
 
-quote = random.choice(quotes)
-caption = f"{quote}\n\n{' '.join(random.sample(hashtags, 4))}"
-
-# ===========================
-# Download missing emoji PNGs
-# ===========================
-def is_emoji(char):
-    return re.match(r'[\U0001F300-\U0001FAFF\u2600-\u26FF]', char)
-
-def download_emoji(char):
-    code = f"{ord(char):x}"
-    filename = f"emoji_u{code}.png"
-    path = os.path.join(EMOJI_FOLDER, filename)
-    if not os.path.exists(path):
-        url = f"https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u/{filename}"
-        try:
-            r = requests.get(url)
-            if r.status_code == 200:
-                with open(path, "wb") as f:
-                    f.write(r.content)
-                print(f"✅ Downloaded {filename}")
-            else:
-                print(f"⚠ Emoji PNG not found for {char}")
-        except Exception as e:
-            print(f"❌ Error downloading {filename}: {e}")
-    return path if os.path.exists(path) else None
-
-# ===========================
-# Create image with wrapping
-# ===========================
-WIDTH, HEIGHT = 1080, 1080
-MARGIN = 50
-LINE_SPACING = 20  # space between lines
-img = Image.new("RGB", (WIDTH, HEIGHT), color="black")
-draw = ImageDraw.Draw(img)
-
-x, y = MARGIN, MARGIN
-spacing = 5  # <--- add this
-line_height = EMOJI_SIZE + 10  # height for each line (text + emojis)
-
-for char in quote:
-    if is_emoji(char):
-        path = download_emoji(char)
-        if path:
-            emoji_img = Image.open(path).convert("RGBA")
-            emoji_img = emoji_img.resize((EMOJI_SIZE, EMOJI_SIZE), Image.ANTIALIAS)
-
-            # Wrap line if exceeding WIDTH
-            if x + EMOJI_SIZE > WIDTH - MARGIN:
-                x = MARGIN
-                y += line_height + LINE_SPACING
-
-            img.paste(emoji_img, (x, y), emoji_img)
-            x += EMOJI_SIZE + spacing
-        else:
-            x += EMOJI_SIZE + spacing  # skip missing
+    if r.status_code == 200:
+        with open("daily_post.png", "wb") as f:
+            f.write(r.content)
+        print("✨ Post image created!")
+        return "daily_post.png"
     else:
-        char_width = font_poppins.getlength(char)
-        # Wrap line if exceeding WIDTH
-        if x + char_width > WIDTH - MARGIN:
-            x = MARGIN
-            y += line_height + LINE_SPACING
+        print("❌ Error:", r.text)
+        return None
 
-        draw.text((x, y), char, font=font_poppins, fill="white")
-        x += char_width + spacing
+# -----------------------
+# Upload to Instagram
+# -----------------------
+def upload_to_instagram(image_path):
+    caption = "✨ Daily Motivational Quote\n#motivation #inspiration #positivity #dailyquotes"
+    cl.photo_upload(image_path, caption)
+    print("📤 Uploaded to Instagram!")
 
-# ===========================
-# Save & upload
-# ===========================
-post_image = "post_with_quote.png"
-img.save(post_image)
-print(f"📸 Post image created with quote: {quote}")
-
-cl.photo_upload(post_image, caption=caption)
-print("✅ Uploaded post to Instagram with caption")
+# -----------------------
+# Main Run
+# -----------------------
+post = generate_ai_post()
+if post:
+    upload_to_instagram(post)
 
 cl.dump_settings(SESSION_FILE)
-print("🔄 Session updated and saved")
+print("🔄 Session updated")
 
