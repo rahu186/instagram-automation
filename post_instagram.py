@@ -385,34 +385,27 @@ def generate_ai_post():
 
     headers = {
         "Authorization": f"Bearer {STABILITY_API_KEY}",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
+        "Accept": "image/png",
     }
 
-    payload = {
+    data = {
         "prompt": PROMPT,
-        "output_format": "png"
+        "output_format": "png",
     }
 
     print("🎨 Generating AI image...")
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, data=data)
 
     if response.status_code != 200:
         print("❌ Stability Error:", response.text)
         return None
 
-    # API returns JSON with base64 image
-    import base64
-    image_b64 = response.json()["image"]
-    image_bytes = base64.b64decode(image_b64)
-
     with open("daily_post.png", "wb") as f:
-        f.write(image_bytes)
+        f.write(response.content)
 
     print("✨ Image saved as daily_post.png")
     return "daily_post.png"
-
 
 
 # -----------------------
