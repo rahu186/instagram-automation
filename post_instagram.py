@@ -385,7 +385,7 @@ def generate_ai_post():
 
     headers = {
         "Authorization": f"Bearer {STABILITY_API_KEY}",
-        "Accept": "image/png",
+        "Accept": "image/*",
     }
 
     data = {
@@ -393,9 +393,13 @@ def generate_ai_post():
         "output_format": "png",
     }
 
+    files = {
+        "none": (None, "")   # REQUIRED for Ultra to accept multipart/form-data
+    }
+
     print("🎨 Generating AI image...")
 
-    response = requests.post(url, headers=headers, data=data)
+    response = requests.post(url, headers=headers, data=data, files=files)
 
     if response.status_code != 200:
         print("❌ Stability Error:", response.text)
