@@ -340,16 +340,17 @@
 import requests
 from instagrapi import Client
 import os
+import json
 
 # -----------------------
 # Stability AI Settings
 # -----------------------
-STABILITY_API_KEY = "sk-Ef75mMzEbDovtJiQTF7YKso7MVDy7ajWLi1QooMe7bjz2XLE"
+STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
+
 PROMPT = """
-Create a high-quality Instagram motivational poster. 
-Generate a brand new original one-line motivational quote yourself 
-and place that quote inside the image in beautiful clean typography.
-The design should be modern and aesthetic. Make it 1080x1080 resolution.
+Create a brand-new original one-line motivational quote.
+Design a modern Instagram poster (1080x1080), aesthetic and clean,
+with the quote beautifully written inside the image.
 """
 
 # -----------------------
@@ -358,52 +359,75 @@ The design should be modern and aesthetic. Make it 1080x1080 resolution.
 SESSION_FILE = "session.json"
 cl = Client()
 
-if os.path.exists(SESSION_FILE):
-    cl.load_settings(SESSION_FILE)
-    cl.private_request("accounts/current_user/?edit=true")
-    print("🔐 Logged in with saved session")
-else:
+def login_instagram():
+    if os.path.exists(SESSION_FILE):
+        try:
+            cl.load_settings(SESSION_FILE)
+            cl.private_request("accounts/current_user/?edit=true")
+            print("🔐 Logged in using saved session")
+            return
+        except Exception as e:
+            print("⚠ Saved session failed, logging in fresh:", e)
+
     USERNAME = os.getenv("INSTAGRAM_USERNAME")
     PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+
     cl.login(USERNAME, PASSWORD)
     cl.dump_settings(SESSION_FILE)
-    print("✅ New session saved")
+    print("✅ Logged in & new session saved")
+
 
 # -----------------------
 # Generate Image using Stability AI
 # -----------------------
 def generate_ai_post():
     url = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
-    headers = {"Authorization": f"Bearer {STABILITY_API_KEY}"}
-    data = {"prompt": PROMPT}
 
-    print("🎨 Generating AI Instagram post...")
-    r = requests.post(url, headers=headers, files={"none":""}, data=data)
+    headers = {
+        "Authorization": f"Bearer {STABILITY_API_KEY}",
+        "Accept": "image/png"
+    }
 
-    if r.status_code == 200:
-        with open("daily_post.png", "wb") as f:
-            f.write(r.content)
-        print("✨ Post image created!")
-        return "daily_post.png"
-    else:
-        print("❌ Error:", r.text)
+    files = {
+        "prompt": (None, PROMPT),
+        "output_format": (None, "png"),
+    }
+
+    print("🎨 Generating AI image...")
+
+    response = requests.post(url, headers=headers, files=files)
+
+    if response.status_code != 200:
+        print("❌ Stability Error:", response.text)
         return None
+
+    with open("daily_post.png", "wb") as f:
+        f.write(response.content)
+
+    print("✨ Image saved as daily_post.png")
+    return "daily_post.png"
+
 
 # -----------------------
 # Upload to Instagram
 # -----------------------
 def upload_to_instagram(image_path):
-    caption = "✨ Daily Motivational Quote\n#motivation #inspiration #positivity #dailyquotes"
-    cl.photo_upload(image_path, caption)
-    print("📤 Uploaded to Instagram!")
+    caption = "✨ Daily Motivation\n#motivation #inspiration #quotes #positivity"
+    try:
+        cl.photo_upload(image_path, caption)
+        print("📤 Successfully uploaded to Instagram!")
+    except Exception as e:
+        print("❌ Upload error:", e)
+
 
 # -----------------------
 # Main Run
 # -----------------------
-post = generate_ai_post()
-if post:
-    upload_to_instagram(post)
+login_instagram()
+
+image = generate_ai_post()
+if image:
+    upload_to_instagram(image)
 
 cl.dump_settings(SESSION_FILE)
-print("🔄 Session updated")
-
+print("🔄 Session saved again")
